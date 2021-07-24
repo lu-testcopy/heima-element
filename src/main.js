@@ -11,7 +11,14 @@ Vue.use(ElementUI);
 // 导入字体图标库
 import ('../src/assets/font/iconfont.css')
 Vue.config.productionTip = false
-
+// 引入富文本编辑器
+import QuillEditor from 'vue-quill-editor'
+// 导入样式
+import 'quill/dist/quill.core.css' // import styles
+import 'quill/dist/quill.snow.css' // for snow theme
+import 'quill/dist/quill.bubble.css' // for bubble theme
+// 注册组件
+Vue.use(QuillEditor)
 new Vue({
   router,
   store,

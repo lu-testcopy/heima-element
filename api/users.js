@@ -34,3 +34,11 @@ export const removeUser = (id) => {
       url: `/users/${id}`
     })
 }
+// 分配用户角色执行的接口函数
+export const allotNewRights = (id,data) => {
+    return request ({
+        method: 'put',
+        url: `users/${id}/role`,
+        data
+    })
+}

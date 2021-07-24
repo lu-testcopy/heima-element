@@ -62,7 +62,8 @@
                     <el-button type="primary" icon="el-icon-edit" size="mini" @click="editUser(scope.row.id)"></el-button>
                     <!-- 删除按钮 -->
                     <el-button type="warning" icon="el-icon-delete"  size="mini" @click="deleteUser((scope.row.id))"></el-button>
-                    <el-button type="danger" icon="el-icon-s-tools" size="mini"></el-button>
+                    <!-- 分配角色按钮 -->
+                    <el-button type="danger" icon="el-icon-s-tools" size="mini" @click="allotRole(scope.row)"></el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -136,24 +137,52 @@
             <el-button @click="deleteDialogVisible = false">取 消</el-button>
             <el-button type="primary" @click=" confrimDelete()">确 定</el-button>
         </span>
-     </el-dialog>
+      </el-dialog>
+     <!-- 分配角色的对话框 -->
+      <el-dialog
+        title="分配角色"
+        :visible.sync="allotDialogVisible"
+        width="50%">
+        <p>当前的用户：{{userInfo.username}}</p>
+        <p>当前的角色：{{userInfo.role_name}}</p>
+        
+             <el-select v-model="id" placeholder="请选择" @change="selectChangge">
+               <el-option
+                v-for="item in rolesList"
+                :key="item.id"
+                :value="item.id"
+                :label="item.roleName"
+                ref="selectRoles"
+                >
+              </el-option>
+            </el-select>
+       
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="allotDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="confrimAllotRights">确 定</el-button>
+        </span>
+      </el-dialog>
     </div>
 </template>
 <script>
-import { getUser,addUserInfo,getEditUserInfo,submitEditInfo,removeUser } from '../../../api/users'
+import { getUser,addUserInfo,getEditUserInfo,submitEditInfo,removeUser,allotNewRights } from '../../../api/users'
+import { getRolesList } from '../../../api/rights'
 export default {
     name: 'Users',
     data() {
         return {
+           id:'',
            input: '',
            userData: [],
            total: 0,
-           pageSize: 1,
+           pageSize: 2,
            pageNum:1,
            userId: '',
+           newRoleId: '',
            AddDialogVisible: false,
            editDialogVisible: false,
            deleteDialogVisible: false,
+           allotDialogVisible: false,
           //新增的用户信息
            addUserForm: {
                username: '',
@@ -161,7 +190,11 @@ export default {
                email: '',
                mobile: ''
            },
-           editUserForm: {},
+          //  当前的用户信息
+          userInfo: {},
+          // 角色列表
+          rolesList: [],
+          editUserForm: {},
          //新增用户表单信息的规则
            addUserRules: {
             username: [
@@ -228,7 +261,7 @@ export default {
             }
         })
       },
-    //   编辑用户执行的函数
+    // 编辑用户执行的函数
       async editUser(id) {
         this.editDialogVisible = true
         const { data } = await getEditUserInfo(id)
@@ -276,8 +309,36 @@ export default {
                 return
             }
         }
+      },
+    // 点击分配角色执行的函数
+      async allotRole(row) {
+        this.allotDialogVisible = true
+        console.log(row)
+        this.userInfo = row
+        this.userId = row.id
+        // 获取角色列表
+        const { data } = await getRolesList()
+        console.log(data);
+        this.rolesList = data.data
+      },
+      selectChangge(id) {
+        // 获取了选中新角色的id
+        console.log(id);
+        this.newRoleId = id
+      },
+      // 确定分配新角色执行的函数
+      async confrimAllotRights() {
+         const {data} = await allotNewRights(this.userId, {id: this.userId, rid: this.newRoleId})
+        //  console.log(data);
+         if(data.meta.status !== 200) {
+           return this.$message.error('设置角色失败')
+         }
+         this.$message.success('设置角色成功')
+         this.allotDialogVisible = false
+         this.getUserInfo()
       }
     },
+   
 }
 </script>
 <style scoped>
